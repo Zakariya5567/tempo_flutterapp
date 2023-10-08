@@ -11,7 +11,6 @@ class BPMScreen  extends StatefulWidget {
 
 class _BPMScreenState extends State<BPMScreen> {
 
-
   double? tapTimestamp;
 
   List<double> tapIntervals = [];
@@ -57,6 +56,19 @@ class _BPMScreenState extends State<BPMScreen> {
     });
   }
 
+
+  setExpiryDate()async{
+    DateTime currentDate = DateTime.now();
+    DateTime endDate = currentDate.add(const Duration(days: 14));
+    await LocalDB.storeEndDate(endDate.toString());
+  }
+
+  @override
+  void initState() {
+    setExpiryDate();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -70,59 +82,57 @@ class _BPMScreenState extends State<BPMScreen> {
             padding:  EdgeInsets.symmetric(horizontal:width*0.06,vertical: height*0.05 ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
-
               children: [
 
                 // SETTING ICON
                 Align(alignment: Alignment.topRight,
-                  child: InkWell(
-                    onTap: ()async{},
-                    child: Container(
-                      height: width * 0.13,
-                      width: width * 0.13,
-                      alignment: Alignment.center,
-                      decoration:  BoxDecoration(
-                        color: AppColors.secondaryBlack,
-                        shape: BoxShape.circle,
-                      ),
-                      child:Icon(Icons.settings,
-                        color: AppColors.primaryWhite,size: width*0.1,
-                      ),
-                    ),
-                  ),),
-
-                // LOGO SECTION " JAMIE HARRISON "
-                SizedBox(
-                  height: height * 0.1,
-                  width: width * 0.80,
-                  child:  Row(
-
-                    children: [
-                       Text(
-                        AppConstant.jamieHarrison,
-                        style: TextStyle(
-                          color:AppColors.primaryWhite,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                  child: GestureDetector(
+                    onTap: ()async{
+                      Navigator.push(context, MaterialPageRoute(builder: (context){
+                        return  Setting(
+                          yearlySubscriptionId: AppConstant.yearlySubscriptionId,
+                          monthlySubscriptionId: AppConstant.monthlySubscriptionId,
+                          nextPage: ()=> const BPMScreen(),);
+                      }));
+                    },
+                      child:Padding(
+                        padding:  EdgeInsets.only(top: height*0.01,right: width*0.01),
+                        child: Icon(Icons.settings,
+                          color: AppColors.primaryWhite,size: width*0.1,
                         ),
                       ),
+                  ),),
 
-                      Transform.rotate(angle: -0.7,
-                          child:  Text(
-                            AppConstant.guitar,
-                            style: TextStyle(
-                              color: AppColors.primaryRed,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
+                // SPACER
+                SizedBox(height: height*0.10,),
+
+                // BPM VALUE SECTION
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      AppConstant.bpm,
+                      style:  TextStyle(
+                        color: AppColors.primaryBlue,
+                        fontSize: 34,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
+                    ),
+
+                    Text(
+                      bpm == null ? AppConstant.bpmNull:
+                      bpm!.toStringAsFixed(1),
+                      style: TextStyle(
+                        color: AppColors.primaryWhite,
+                        fontSize: 34,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
 
                 // SPACER
-                SizedBox(height: height*0.09,),
+                SizedBox(height: height*0.06,),
 
                 // BLUE BUTTON
                 AnimatedScale(
@@ -131,21 +141,21 @@ class _BPMScreenState extends State<BPMScreen> {
                   curve: Curves.bounceInOut,
                   scale: animate == true ? 1.2 : 1,
                   child: Container(
-                      height: width * 0.45,
-                      width: width * 0.45,
+                      height: height * 0.28,
+                      width: height * 0.28,
                       decoration:  BoxDecoration(
                         color: AppColors.primaryBlue,
                         shape: BoxShape.circle,
                       ),
                       child: Padding(
-                        padding: EdgeInsets.all(width*0.015,),
+                        padding: EdgeInsets.all(height*0.010,),
                         child:    InkWell(
                           onTap: (){
                             handleTap();
                           },
                           child: Container(
-                            height: width * 0.45,
-                            width: width * 0.45,
+                            height: height * 0.28,
+                            width: height * 0.28,
                             decoration:  BoxDecoration(
                                 color: AppColors.secondaryBlack,
                                 shape: BoxShape.circle,
@@ -164,85 +174,16 @@ class _BPMScreenState extends State<BPMScreen> {
                 ),
 
                 // SPACER
-                SizedBox(height: height*0.05,),
-
-                // TAP TEMPO TEXT
-                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                     AppConstant.tap,
-                      style: TextStyle(
-                        color: AppColors.primaryBlue,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-
-                    Text(
-                      AppConstant.tempo,
-                      style: TextStyle(
-                        color: AppColors.primaryWhite,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // SPACER
-                SizedBox(height: height*0.04,),
-
-                // BPM VALUE SECTION
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                     Text(
-                      AppConstant.bpm,
-                      style:  TextStyle(
-                        color: AppColors.primaryBlue,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-
-                    Text(
-                      bpm == null ? AppConstant.bpmNull:
-                      bpm!.toStringAsFixed(1),
-                      style: TextStyle(
-                        color: AppColors.primaryWhite,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // SPACER
-                SizedBox(height: height*0.05,),
-
-                // DESCRIPTION
-                 Text(
-                  AppConstant.tempoDescription,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.primaryWhite,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-
-                // SPACER
-                SizedBox(height: height*0.06,),
+                SizedBox(height: height*0.18,),
 
                 // RESET BUTTON
-                InkWell(
+                GestureDetector(
                   onTap: (){
                     clearBPM();
                   },
                   child: Container(
-                    height: width * 0.13,
-                    width: width * 0.13,
+                    height: height * 0.09,
+                    width: height * 0.09,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: AppColors.secondaryBlack,
@@ -253,13 +194,10 @@ class _BPMScreenState extends State<BPMScreen> {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
         )
     );
   }
-
-
 }
