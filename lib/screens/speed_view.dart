@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tempo_bpm/providers/metro_provider.dart';
+import 'package:tempo_bpm/providers/speed_provider.dart';
 import '../utils/app_ colors.dart';
 import '../utils/app_constant.dart';
 
 class SpeedView extends StatelessWidget {
    SpeedView({super.key});
 
-
-
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-    return Consumer<MetroProvider>(builder: (context, controller, child) {
+    return Consumer<SpeedProvider>(builder: (context, controller, child) {
       return Padding(
-        padding: EdgeInsets.symmetric(horizontal:0),
+        padding: const EdgeInsets.symmetric(horizontal:0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             // SPACER
             SizedBox(height: height * 0.08),
-
 
             const Heading(title: AppConstant.startingTempo, numbers: "100"),
             SizedBox(height: height * 0.020),
@@ -61,8 +60,11 @@ class SpeedView extends StatelessWidget {
                   thumbColor: AppColors.whitePrimary,
                   min: 0,
                   max: 1,
-                  value: 0.3, onChanged: (values){}),
+                  value: 0.3,
+                  onChanged: (values){}
+              ),
             ),
+
             SizedBox(height: height * 0.06),
             AddAndSubtractButton(
                 title: AppConstant.bars,
@@ -81,8 +83,6 @@ class SpeedView extends StatelessWidget {
                 onAdd: (){},
                 onSubtract: (){}
             ),
-
-
 
             SizedBox(height: height * 0.06),
 
@@ -112,12 +112,14 @@ class SpeedView extends StatelessWidget {
                 ),
               ],
             ),
+
           ],
         ),
       );
     });
   }
 }
+
 
 class Heading extends StatelessWidget {
   const Heading({super.key,required this.title,required this.numbers});

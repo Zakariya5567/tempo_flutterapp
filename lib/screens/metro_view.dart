@@ -10,6 +10,8 @@ import 'package:tempo_bpm/utils/images.dart';
 import '../utils/app_ colors.dart';
 import '../utils/app_constant.dart';
 
+
+
 class MetroView extends StatefulWidget {
   const MetroView({super.key});
 
@@ -20,184 +22,28 @@ class MetroView extends StatefulWidget {
 
 class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
 
-
-
   //
-
-
- // double topPosition = 0.0;
- //  double initialTop = 0.0;
-
-
-
-
-  late AnimationController _dragController;
-  late Animation<double> _dragAnimation;
-
-  late AnimationController _controller;
-  late Animation<double> _animation;
+  // late AnimationController _controller;
+  // late Animation<double> _animation;
   //
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(
-      duration: Duration(milliseconds: (60000 / bpm).round()),
-      vsync: this,
-     );
-    _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
-
+    final metroProvider = Provider.of<MetroProvider>(context,listen: false);
+    metroProvider.initializeAnimationController(this);
   }
 
+  MetroProvider? metroProvider;
 
-
-
-  double minimumInterval = 40;
-  double maximumInterval = 300;
-  double bpm = 120;
-  bool isPlay = false;
-  double begin = 0;
-  final player = AudioPlayer();
-  int totalBeat = 4;
-  int totalTick = 0;
-  bool isPlaying = false;
-  Timer? _timer;
-
-  void startStop() {
-    setState(() {
-      totalTick = 0;
-      if (isPlaying) {
-        if(_timer != null){
-          _timer!.cancel();
-        }
-        _controller.reset();
-        _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
-
-      } else {
-        setTimer();
-      }
-      isPlaying = !isPlaying;
-    });
+  @override
+  void didChangeDependencies() {
+    metroProvider = Provider.of<MetroProvider>(context,listen: false);
+    super.didChangeDependencies();
   }
 
-  void increaseBpm() {
-    if( bpm < 300) {
-      setState(() {
-        bpm += 1;
-      });
-      if(isPlaying == true){
-        setTimer();
-      }
-    }
-  }
-
-  void decreaseBpm() {
-    if(bpm > 40){
-      setState(() {
-        bpm -= 1;
-        if (bpm < 1) {
-          bpm = 1;
-        }
-      });
-      if(isPlaying == true){
-        setTimer();
-      }
-    }
-  }
-
-  setTimer(){
-
-    if(_timer != null){
-      _timer!.cancel();
-    }
-    _timer = Timer.periodic(
-      Duration( milliseconds: (60000 / bpm).round()),
-          (Timer timer) {
-        playSound();
-      },
-    );
-
-    _controller.dispose();
-    _controller = AnimationController(
-      duration:  Duration( milliseconds: (60000 / bpm).round()),
-      vsync: this,
-    );
-    _animation = Tween<double>(begin: -1, end: 1).animate(_controller);
-    _controller.repeat(reverse: true);
-  }
-
-  int selectedButton = 0;
-  setBeats(index){
-    if(index == 0 ){
-      setState(() {
-        totalBeat = 4;
-        selectedButton = index;
-      });
-
-
-    }else if(index == 1 ){
-      setState(() {
-      totalBeat = 3;
-      selectedButton = index;
-    });
-    }else if(index == 2 ){
-      setState(() {
-      totalBeat = 6;
-      selectedButton = index;
-      });
-    }
-
-  }
-
-  Future playSound()async{
-
-    totalTick = totalTick+1;
-    setState(() {});
-    if(totalTick == 1){
-      await player.setAudioSource(AudioSource.asset(AppConstant.clickSound));
-      if(player.playing == false){
-        await player.play();
-      }
-    }else{
-      if(totalTick<totalBeat){
-        await player.setAudioSource(AudioSource.asset(AppConstant.tapSound));
-        if(player.playing == false){
-          await player.play();
-        }
-      }else{
-        await player.setAudioSource(AudioSource.asset(AppConstant.tapSound));
-        if(player.playing == false){
-          await player.play();
-        }
-        totalTick = 0;
-      }
-    }
-
-  }
-
-  bool dragging= false;
-
-  Future stopSound()async{
-    if(player.playing){
-      await player.stop();
-    }
-    totalTick = 0;
-  }
-
-  double initialPosition = 0;
-  double topPosition = 0;
-
-  double ytop = 50.0;
-  double xleft = 50.0;
-  GlobalKey blueKey = GlobalKey();
-  double position = 0;
-
-  GlobalKey _containerKey = GlobalKey();
-  Offset offset = Offset.zero;
-  bool isDragging = true;
   @override
   void dispose() {
-    _controller.dispose();
+    metroProvider!.disposeController();
     super.dispose();
   }
 
@@ -219,7 +65,7 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
               children: [
 
                 // Button selection 3/3 ....
-                 SizedBox(
+                SizedBox(
                   height: height * 0.40,
                   width: width * 0.165,
                   child: ListView.builder(
@@ -229,164 +75,164 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
                       itemBuilder: (context, index) {
                         return
                           GestureDetector(
-                          onTap: () async {
-                            setBeats(index);
-                          },
-                          child: Padding(
-                            padding:
-                                EdgeInsets.symmetric(vertical: height * 0.02),
-                            child: Container(
+                            onTap: () async {
+                              controller.setBeats(index);
+                            },
+                            child: Padding(
+                              padding:
+                              EdgeInsets.symmetric(vertical: height * 0.02),
+                              child: Container(
                                 height: height * 0.08,
                                 width: height * 0.08,
                                 decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: selectedButton == index ? AppColors.greySecondary : AppColors.greyPrimary,
-                              ),
-                              child: Center(
-                                    child: Text(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color:   controller.selectedButton == index ? AppColors.greySecondary : AppColors.greyPrimary,
+                                ),
+                                child: Center(
+                                  child: Text(
                                     controller.tapButtonList[index],
                                     style: TextStyle(
-                                    fontFamily: AppConstant.sansFont,
-                                    color: AppColors.whitePrimary,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                   ),
+                                      fontFamily: AppConstant.sansFont,
+                                      color: AppColors.whitePrimary,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
+                          );
                       }),),
 
                 // SPACER
                 SizedBox(width: width * 0.03),
 
-                    // Metronome
-                    Container(
-                      alignment: Alignment.center,
-                      height: height * 0.40,
-                      width: width * 0.60,
-                      child: Stack(
-                        children: [
-                          SizedBox(
-                            height: height * 0.40,
-                            width: width * 0.60,
-                            child: Image.asset(
-                              Images.metronome,
-                              height: height * 0.40,
-                              width: width * 0.60,
-                              fit: BoxFit.fill,
-                            ),
-                          ),
+                // Metronome
+                Container(
+                  alignment: Alignment.center,
+                  height: height * 0.40,
+                  width: width * 0.60,
+                  child: Stack(
+                    children: [
+                      SizedBox(
+                        height: height * 0.40,
+                        width: width * 0.60,
+                        child: Image.asset(
+                          Images.metronome,
+                          height: height * 0.40,
+                          width: width * 0.60,
+                          fit: BoxFit.fill,
+                        ),
+                      ),
 
-                          Positioned(
-                            top: height * 0.052,
-                            child: Container(
-                              height:  height * 0.23,
-                              width: width * 0.60,
-                              alignment: Alignment.bottomCenter,
-                              child: AnimatedBuilder(
-                                animation: _animation,
-                                builder: (context, child) {
+                      Positioned(
+                        top: height * 0.052,
+                        child: Container(
+                          height:  height * 0.23,
+                          width: width * 0.60,
+                          alignment: Alignment.bottomCenter,
+                          child: AnimatedBuilder(
+                            animation:   controller.animation!,
+                            builder: (context, child) {
 
 
-                                  //You can customize the translation and rotation values
-                                  double translationValue = 0 * _animation.value;
-                                  double rotationValue = 180 * _animation.value;
-                                  //
+                              //You can customize the translation and rotation values
+                              double translationValue = 0 *   controller.animation!.value;
+                              double rotationValue = 180 *   controller.animation!.value;
+                              //
 
-                                  return Transform(
-                                    alignment: Alignment.bottomCenter,
-                                    transform: Matrix4.identity()
-                                      ..translate(translationValue, 0.0)
-                                      ..rotateZ(rotationValue * 0.0034533), // Convert degrees to radians
-                                    child: Stack(
-                                      children: [
+                              return Transform(
+                                alignment: Alignment.bottomCenter,
+                                transform: Matrix4.identity()
+                                  ..translate(translationValue, 0.0)
+                                  ..rotateZ(rotationValue * 0.0034533), // Convert degrees to radians
+                                child: Stack(
+                                  children: [
 
-                                        Container(
-                                          height: height * 0.40,
-                                          width: width * 0.095,
-                                          alignment: Alignment.center,
-                                          child: Image.asset(
-                                            Images.stalk,
-                                            height: height * 0.40,
-                                            width: width * 0.020,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-
-                                        Positioned(
-                                          top: position,
-                                          left: 2,
-                                          child: Image.asset(
-                                            Images.slider,
-                                            height: height * 0.045,
-                                            width: height * 0.045,
-                                          ),
-                                        ),
-
-                                      ],
+                                    Container(
+                                      height: height * 0.40,
+                                      width: width * 0.095,
+                                      alignment: Alignment.center,
+                                      child: Image.asset(
+                                        Images.stalk,
+                                        height: height * 0.40,
+                                        width: width * 0.020,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
-                                  );
+
+                                    Positioned(
+                                      top:  height *controller.bpm*0.00058,
+                                      left: width*0.008,
+                                      child: Image.asset(
+                                        Images.slider,
+                                        height: height * 0.045,
+                                        width: height * 0.045,
+                                      ),
+                                    ),
+
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+
+                      Positioned(
+                        top: height*0.08,
+                        left:width*0.003 ,
+                        child: Container(
+                          height: height * 0.40,
+                          width: width * 0.60,
+                          alignment: Alignment.bottomCenter,
+                          child: Image.asset(
+                            Images.metronomeBottom,
+                            height: height * 0.40,
+                            width: width * 0.42,
+                          ),
+                        ),
+                      ),
+
+
+                      Positioned(
+                        left: width * 0.270,
+                        top: height * 0.050,
+
+                        child: Container(
+                          alignment: Alignment.topCenter,
+                          height: height * 0.21,
+                          width: width * 0.060,
+                          color: Colors.transparent,
+                          child: RotatedBox(
+                            quarterTurns: 1,
+                            child:
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 0.0, // Set trackHeight to 0 to remove the track
+                                overlayShape: SliderComponentShape.noOverlay, // Remove overlay
+                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0.0), // Remove thumb
+                                overlayColor: Colors.transparent, // Make overlay transparent
+                              ),
+                              child: Slider(
+                                divisions: 300,
+                                activeColor: Colors.red,
+                                inactiveColor: Colors.green,
+                                thumbColor: Colors.transparent,
+                                value:  controller.bpm,
+                                min: 1,
+                                max:300,
+                                onChanged: (value) {
+                                    controller.setPosition(value);
                                 },
                               ),
                             ),
                           ),
-
-                          Positioned(
-                            top: height*0.08,
-                            left:width*0.003 ,
-                            child: Container(
-                              height: height * 0.40,
-                              width: width * 0.60,
-                              alignment: Alignment.bottomCenter,
-                              child: Image.asset(
-                                Images.metronomeBottom,
-                                height: height * 0.40,
-                                width: width * 0.42,
-                              ),
-                            ),
-                          ),
-
-                          Positioned(
-                            left: width * 0.270,
-                            top: height * 0.050,
-
-                            child: Container(
-                              alignment: Alignment.topCenter,
-                              height: height * 0.21,
-                              width: width * 0.060,
-                              color: Colors.transparent,
-                              child: RotatedBox(
-                                quarterTurns: 1,
-                                child:
-                                SliderTheme(
-                                    data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 0.0, // Set trackHeight to 0 to remove the track
-                                      overlayShape: SliderComponentShape.noOverlay, // Remove overlay
-                                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0.0), // Remove thumb
-                                      overlayColor: Colors.transparent, // Make overlay transparent
-                                    ),
-                                  child: Slider(
-                                    activeColor: Colors.red,
-                                    inactiveColor: Colors.green,
-                                    thumbColor: Colors.transparent,
-                                    value: position,
-                                    min: 0.0,
-                                    max: 125.0,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        position = value;
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
+                  ),
+                ),
 
               ],
             ),
@@ -444,7 +290,7 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
               children: [
                 GestureDetector(
                   onTap: (){
-                    decreaseBpm();
+                    controller.decreaseBpm(this);
                   },
                   child: Container(
                     height: height * 0.038,
@@ -476,9 +322,9 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
                       ),
                     ),
                     Text(
-                      bpm == null
+                      controller.bpm == null
                           ? AppConstant.bpmNull
-                          : bpm.toStringAsFixed(1),
+                          :  controller.bpm.toStringAsFixed(0),
                       style: TextStyle(
                         fontFamily: AppConstant.sansFont,
                         color: AppColors.whiteSecondary,
@@ -493,7 +339,7 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
                 ),
                 GestureDetector(
                   onTap: (){
-                    increaseBpm();
+                    controller.increaseBpm(this);
                   },
                   child: Container(
                     height: height * 0.038,
@@ -519,8 +365,8 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
             Center(
               child: GestureDetector(
                 onTap: ()async{
-                   startStop();
-                  },
+                  controller.startStop(this);
+                },
                 child: Container(
                   height: height * 0.095,
                   width: height * 0.095,
@@ -531,7 +377,7 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
                   child: Center(
                       child:
                       Icon(
-                        isPlaying == true ? Icons.pause :
+                        controller.isPlaying == true ? Icons.pause :
                         Icons.play_arrow,color: AppColors.whitePrimary,size: width*0.13,)
                   ),
                 ),
@@ -543,5 +389,4 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
       );
     });
   }
-
 }

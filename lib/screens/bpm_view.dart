@@ -119,8 +119,8 @@ class BpmView extends StatelessWidget {
                 ),
 
                 Text(
-                  controller    .bpm == null ? AppConstant.bpmNull:
-        controller.bpm!.toStringAsFixed(1),
+                  controller  .bpm == null ? AppConstant.bpmNull:
+                  controller.bpm!.toStringAsFixed(0),
                   style: TextStyle(
                     fontFamily: AppConstant.sansFont,
                     color: AppColors.whiteSecondary,

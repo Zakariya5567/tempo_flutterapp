@@ -6,148 +6,168 @@ import 'package:tempo_bpm/utils/app_constant.dart';
 class MetroProvider extends ChangeNotifier{
 
 
-  bool isPlay = false;
+   double bpmMin = 1.0;
+   double bpmMax = 300.0;
+   double sliderMin = 1.0;
+   double sliderMax = 300.0;
 
   List<String> tapButtonList = ['4/4', '3/4','6/8'];
 
-  double? tapTimestamp;
-  double? bpm ;
 
-  int selectedButton = 0;
+  double position = 0;
+  double bpm = 120;
+  final player = AudioPlayer();
+  int totalBeat = 4;
+  int totalTick = 0;
+  bool isPlaying = false;
+  Timer? _timer;
 
-  setSelectedButton(int value){
-    selectedButton = value;
+   AnimationController? controller;
+   Animation<double>? animation;
+
+
+  initializeAnimationController(TickerProviderStateMixin ticker){
+    controller = AnimationController(
+      duration: Duration(milliseconds: (60000 / bpm).round()),
+      vsync: ticker,
+    );
+    animation = Tween<double>(begin: 0, end: 1).animate(controller!);
+  }
+
+
+  void disposeController() {
+    isPlaying = false;
+    if(controller != null){
+      controller!.dispose();
+    }
+    if(_timer != null){
+      _timer!.cancel();
+    }
+   }
+
+
+  setPosition(double value){
+    position = value;
+    bpm  = value;
     notifyListeners();
   }
 
+  void startStop(TickerProviderStateMixin ticker) {
+      totalTick = 0;
+      if (isPlaying) {
+        if(_timer != null){
+          _timer!.cancel();
+        }
+        controller!.reset();
+        animation = Tween<double>(begin: 0, end: 1).animate(controller!);
+      } else {
+       setTimer(ticker);
+      }
+      isPlaying = !isPlaying;
+    notifyListeners();
 
-  double offsetX = 0;
-  double offsetY = 0;
-  double angle = 0;
-
-
-  Timer? timer1;
-  Timer? timer2;
-  final player = AudioPlayer();
-
-  play() async {
-
-    if(isPlay == true){
-      offsetX = 0;
-      offsetY = 0;
-      angle = 0;
-      notifyListeners();
-      await player.stop();
-    }else {
-      isPlay = true;
-      timer1 = Timer.periodic(const Duration(seconds: 1), (timer) async {
-        offsetX = 70;
-        offsetY = 1;
-        angle = 0.5;
-        notifyListeners();
-        await player.setAudioSource(AudioSource.asset(AppConstant.clickSound));
-        await player.play();
-        timer2 = Timer.periodic(const Duration(seconds: 1), (timer) async {
-          offsetX = -70;
-          offsetY = 1;
-          angle = -0.5;
-          notifyListeners();
-          await player.setAudioSource(AudioSource.asset(AppConstant.clickSound));
-          await player.play();
-        });
-      });
-
-    }
-
-
-    // if(player.playing){
-    //   isPlay = false;
-    //   notifyListeners();
-    //   await player.stop();
-    // }else{
-    //   isPlay = true;
-    //   notifyListeners();
-    //   await player.setAudioSource(AudioSource.asset(AppConstant.beat1));
-    //   await player.play();
-    // }
-
-    //Changes the current position (note: this does not affect the "playing" status).
-    //await player.seek(Duration(milliseconds: 1200));
-
-
-
-    //Disposes the player. It is calling release and also closes all open streams.
-    // This player instance must not be used anymore!
-    // await player.dispose();
-
-
-
-    //Changes the playback rate (i.e. the "speed" of playback).
-    //Defaults to 1.0 (normal speed). 2.0 would be 2x speed, etc.
-    //await player.setPlaybackRate(0.5);
-
-
-    //.loop: starts over after completion, looping over and over again.
-
-    // audioPlayer.onPlayerComplete.listen((event) async {
-    //   await audioPlayer.play(AssetSource(AppConstant.beat1));
-    // });
-    //
-    // audioPlayer.onSeekComplete.listen((event) async {
-    //   await audioPlayer.play(AssetSource(AppConstant.beat1));
-    // });
-
-
-    // timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
-    //
-    //   switch (audioPlayer.state) {
-    //     case PlayerState.playing:
-    //       await audioPlayer.stop();
-    //       isPlay = false;
-    //       notifyListeners();
-    //       break;
-    //     case PlayerState.stopped:
-    //       isPlay = true;
-    //       notifyListeners();
-    //        await audioPlayer.play(AssetSource(AppConstant.beat1));
-    //       break;
-    //     case PlayerState.completed:
-    //       isPlay = true;
-    //       notifyListeners();
-    //       await audioPlayer.play(AssetSource(AppConstant.beat1));
-    //       break;
-    //     default:
-    //       print("${audioPlayer.state}");
-    //       break;
-    //   }
-    // });
-
-    // switch (audioPlayer.state) {
-    //   case PlayerState.playing:
-    //     audioPlayer.pause();
-    //      isPlay = false;
-    //      notifyListeners();
-    //     break;
-    //   case PlayerState.stopped:
-    //     isPlay = true;
-    //     notifyListeners();
-    //    await audioPlayer.play(AssetSource(AppConstant.beat1));
-    //
-    //     break;
-    //   case PlayerState.paused:
-    //     await audioPlayer.resume();
-    //     isPlay = true;
-    //     notifyListeners();
-    //     break;
-    //   case PlayerState.completed:
-    //     await audioPlayer.play(AssetSource(AppConstant.beat1));
-    //     break;
-    //   default:
-    //     print("${audioPlayer.state}");
-    //     break;
-    // }
 
   }
+
+  void increaseBpm(TickerProviderStateMixin ticker){
+    if( bpm < bpmMax) {
+        bpm += 1;
+        notifyListeners();
+      if(isPlaying == true){
+        setTimer(ticker);
+      }
+    }
+  }
+
+  void decreaseBpm(TickerProviderStateMixin ticker) {
+    if(bpm > bpmMin){
+        bpm -= 1;
+        if (bpm < 1) {
+          bpm = 1;
+        }
+        notifyListeners();
+      if(isPlaying == true){
+        setTimer(ticker);
+      }
+    }
+  }
+
+  bool firstTime = true;
+
+  setTimer(TickerProviderStateMixin ticker){
+
+    if(_timer != null){
+      _timer!.cancel();
+    }
+    _timer = Timer.periodic(
+      Duration( milliseconds: (60000 / bpm).round()),
+          (Timer timer) {
+        playSound();
+      },
+    );
+
+      controller = AnimationController(
+        duration:  Duration( milliseconds: (60000 / bpm).round()),
+        vsync: ticker,
+      );
+      animation = Tween<double>(begin: -1, end: 1).animate(controller!);
+      controller!.repeat(reverse: true);
+
+
+  }
+
+  int selectedButton = 0;
+  setBeats(index){
+    if(index == 0 ){
+        totalBeat = 4;
+        selectedButton = index;
+      notifyListeners();
+
+
+    }else if(index == 1 ){
+        totalBeat = 3;
+        selectedButton = index;
+        notifyListeners();
+    }else if(index == 2 ){
+        totalBeat = 6;
+        selectedButton = index;
+        notifyListeners();
+    }
+
+  }
+
+  Future playSound()async{
+
+    totalTick = totalTick+1;
+    notifyListeners();
+    if(totalTick == 1){
+      await player.setAudioSource(AudioSource.asset(AppConstant.clickSound));
+      if(player.playing == false){
+        await player.play();
+      }
+    }else{
+      if(totalTick<totalBeat){
+        await player.setAudioSource(AudioSource.asset(AppConstant.tapSound));
+        if(player.playing == false){
+          await player.play();
+        }
+      }else{
+        await player.setAudioSource(AudioSource.asset(AppConstant.tapSound));
+        if(player.playing == false){
+          await player.play();
+        }
+        totalTick = 0;
+      }
+    }
+  }
+
+  Future stopSound()async{
+    if(player.playing){
+      await player.stop();
+    }
+    totalTick = 0;
+  }
+
 
 
 }

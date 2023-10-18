@@ -8,7 +8,6 @@ class TapTempoProvider extends ChangeNotifier{
   double? bpm ;
   String audioName = '';
 
-
   void handleTap() {
 
     final currentTime = DateTime.now().millisecondsSinceEpoch.toDouble();
@@ -25,13 +24,10 @@ class TapTempoProvider extends ChangeNotifier{
     }
 
     tapTimestamp = currentTime;
- //   setAudioName();
+    //   setAudioName();
   }
 
-
   setAudioName(){
-
-
     if(bpm! < 20){
       audioName = '';
       notifyListeners();
@@ -66,10 +62,7 @@ class TapTempoProvider extends ChangeNotifier{
       audioName = AppConstant.prestissimo;
       notifyListeners();
     }
-
   }
-
-
 
   void clearBPM() {
       tapTimestamp = null;
@@ -78,7 +71,6 @@ class TapTempoProvider extends ChangeNotifier{
       bpm = null;
       notifyListeners();
   }
-
 
 
 }
