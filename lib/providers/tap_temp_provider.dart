@@ -6,7 +6,7 @@ class TapTempoProvider extends ChangeNotifier{
   List<double> tapIntervals = [];
   double? tapTimestamp;
   double? bpm ;
-  String audioName = '';
+  String musicName = '';
 
   void handleTap() {
 
@@ -24,49 +24,45 @@ class TapTempoProvider extends ChangeNotifier{
     }
 
     tapTimestamp = currentTime;
-    //   setAudioName();
+     setAudioName();
   }
 
   setAudioName(){
-    if(bpm! < 20){
-      audioName = '';
-      notifyListeners();
-    } else if(bpm! > 20){
-      audioName = AppConstant.grave;
-      notifyListeners();
-    } else if(bpm! > 40){
-      audioName = AppConstant.lento;
-      notifyListeners();
-    } else if(bpm! > 45){
-      audioName = AppConstant.largo;
-      notifyListeners();
-    } else if(bpm! > 50){
-      audioName = AppConstant.adagio;
-      notifyListeners();
-    } else if(bpm! > 55){
-      audioName = AppConstant.adagio;
-      notifyListeners();
-    } else if(bpm! > 65){
-      audioName = AppConstant.adagietto;
-      notifyListeners();
-    } else if(bpm! > 69){
-      audioName = AppConstant.andante;
-      notifyListeners();
-    } else if(bpm! > 20){
-      audioName = '';
-      notifyListeners();
-    } else if(bpm! > 168){
-      audioName = AppConstant.presto;
-      notifyListeners();
-    } else if(bpm! > 177){
-      audioName = AppConstant.prestissimo;
-      notifyListeners();
+    if (bpm! <= 20) {
+      musicName = "Larghissimo";
+    } else if (bpm! <= 40) {
+      musicName = "Grave";
+    } else if (bpm! <= 60) {
+      musicName = "Largo";
+    } else if (bpm! <= 66) {
+      musicName = "Larghetto";
+    } else if (bpm! <= 76) {
+      musicName = "Adagio";
+    } else if (bpm! <= 80) {
+      musicName = "Adagietto";
+    } else if (bpm! == 80) {
+      musicName = "Tranquillo";
+    } else if (bpm! <= 98) {
+      musicName = "Andante";
+    } else if (bpm! <= 120) {
+      musicName = "Moderato";
+    } else if (bpm! <= 128) {
+      musicName = "Allegretto";
+    } else if (bpm! <= 156) {
+      musicName = "Allegro";
+    } else if (bpm! <= 176) {
+      musicName = "Vivace";
+    } else if (bpm! <= 200) {
+      musicName = "Presto";
+    } else {
+      musicName = "Prestissimo";
     }
+
   }
 
   void clearBPM() {
       tapTimestamp = null;
-      audioName = '';
+      musicName = '';
       tapIntervals.clear();
       bpm = null;
       notifyListeners();

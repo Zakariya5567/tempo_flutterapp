@@ -1,12 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tempo_bpm/providers/metro_provider.dart';
 import 'package:tempo_bpm/providers/speed_provider.dart';
 import '../utils/app_ colors.dart';
 import '../utils/app_constant.dart';
 
-class SpeedView extends StatelessWidget {
+class SpeedView extends StatefulWidget {
    SpeedView({super.key});
+
+  @override
+  State<SpeedView> createState() => _SpeedViewState();
+}
+
+class _SpeedViewState extends State<SpeedView> {
+
+  SpeedProvider? speedProvider;
+
+  @override
+  void didChangeDependencies() {
+    speedProvider = Provider.of<SpeedProvider>(context,listen: false);
+    super.didChangeDependencies();
+  }
+
+  @override
+  void initState() {
+    final speedProvider = Provider.of<SpeedProvider>(context,listen: false);
+        speedProvider.initializedPlayer();
+    super.initState();
+  }
+
+ @override
+  void dispose() {
+     speedProvider!.disposeController();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,70 +47,110 @@ class SpeedView extends StatelessWidget {
           children: [
 
             // SPACER
-            SizedBox(height: height * 0.08),
+            SizedBox(height: height * 0.05),
 
-            const Heading(title: AppConstant.startingTempo, numbers: "100"),
-            SizedBox(height: height * 0.020),
+            // STARTING TEMPO
+             Heading(title: AppConstant.startingTempo, numbers: controller.startTempo.toStringAsFixed(0)),
+
+            // SPACER
+            SizedBox(height: height * 0.015),
+
+            // STARTING SLIDER
+
             SliderTheme(
               data: SliderThemeData(
                 thumbShape: RoundSliderThumbShape(
-                  enabledThumbRadius: height*0.015,
+                  enabledThumbRadius: height*0.012,
                 ),
                   overlayShape: SliderComponentShape.noOverlay,
-                trackHeight: height*0.008
+                trackHeight: height*0.005
               ),
               child: Slider(
 
                 activeColor: AppColors.whitePrimary,
                 thumbColor: AppColors.whitePrimary,
-                 min: 0,
-                  max: 1,
-                  value: 0.3, onChanged: (values){}),
+                 min: controller.startTempoMin,
+                 max: controller.startTempoMax,
+                 value: controller.startTempo, onChanged: (values){
+                controller. setStartTempo(values);
+              }),
             ),
 
-            SizedBox(height: height * 0.04),
+            // SPACER
 
-            const Heading(title: AppConstant.targetTempo, numbers: "240"),
-            SizedBox(height: height * 0.020),
+            SizedBox(height: height * 0.02),
+
+            // TARGET TEMPO
+             Heading(title: AppConstant.targetTempo, numbers: controller.targetTempo.toStringAsFixed(0)),
+
+
+            // SPACER
+            SizedBox(height: height * 0.015),
+
+
+            // TARGET SLIDER
+
             SliderTheme(
               data: SliderThemeData(
                   thumbShape: RoundSliderThumbShape(
-                    enabledThumbRadius: height*0.015,
+                    enabledThumbRadius: height*0.012,
                   ),
                   overlayShape: SliderComponentShape.noOverlay,
-                  trackHeight: height*0.008
+                  trackHeight: height*0.005
               ),
               child: Slider(
 
                   activeColor: AppColors.whitePrimary,
                   thumbColor: AppColors.whitePrimary,
-                  min: 0,
-                  max: 1,
-                  value: 0.3,
-                  onChanged: (values){}
+                  min: controller.targetTempoMin,
+                  max: controller.targetTempoMax,
+                  value: controller.targetTempo,
+                  onChanged: (values){
+                    controller.setTargetTempo(values);
+                  }
               ),
             ),
 
-            SizedBox(height: height * 0.06),
+
+            // SPACER
+
+            SizedBox(height: height * 0.04),
+
+            // BARS
+
             AddAndSubtractButton(
                 title: AppConstant.bars,
-                numbers: "2",
+                numbers:controller. bar.toString(),
                 description: AppConstant.howManyBars,
-                onAdd: (){},
-                onSubtract: (){}
+                onAdd: (){
+                  controller. increaseBar();
+                },
+                onSubtract: (){
+                  controller. decreaseBar();
+                }
             ),
 
-            SizedBox(height: height*0.05,),
+            // SPACER
+
+            SizedBox(height: height*0.03,),
+
+            // INTERVAL BUTTONS
 
             AddAndSubtractButton(
                 title: AppConstant.interval,
-                numbers: "23",
-                description:  AppConstant.howMuchItShouldIncrease,
-                onAdd: (){},
-                onSubtract: (){}
+                numbers: controller.interval.toString(),
+                description:  "${AppConstant.howMuchItShouldIncrease} ${controller.bar} Bars",
+                onAdd: (){
+                  controller. increaseInterval();
+                },
+                onSubtract: (){
+                  controller. decreaseInterval();
+                }
             ),
 
-            SizedBox(height: height * 0.06),
+
+          // SPACER
+            SizedBox(height: height * 0.03),
 
             // BPM VALUE SECTION
             Row(
@@ -100,9 +166,9 @@ class SpeedView extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  controller.bpm == null
+                  controller. bpm == null
                       ? AppConstant.bpmNull
-                      : controller.bpm!.toStringAsFixed(1),
+                      : controller.bpm.toStringAsFixed(0),
                   style: TextStyle(
                     fontFamily: AppConstant.sansFont,
                     color: AppColors.whiteSecondary,
@@ -111,6 +177,31 @@ class SpeedView extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+
+            SizedBox(height: height * 0.03),
+            // BUTTON
+
+            Center(
+              child: GestureDetector(
+                onTap: ()async{
+                  controller. startStop();
+                },
+                child: Container(
+                  height: height * 0.095,
+                  width: height * 0.095,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:  AppColors.redPrimary,
+                  ),
+                  child: Center(
+                      child:
+                      Icon(
+                        controller. isPlaying == true ? Icons.pause :
+                        Icons.play_arrow,color: AppColors.whitePrimary,size: width*0.13,)
+                  ),
+                ),
+              ),
             ),
 
           ],
@@ -160,7 +251,6 @@ class Heading extends StatelessWidget {
     );
   }
 }
-
 
 class AddAndSubtractButton extends StatelessWidget {
   const AddAndSubtractButton({super.key,

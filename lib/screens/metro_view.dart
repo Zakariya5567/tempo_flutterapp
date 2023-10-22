@@ -22,15 +22,12 @@ class MetroView extends StatefulWidget {
 
 class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
 
-  //
-  // late AnimationController _controller;
-  // late Animation<double> _animation;
-  //
+
   @override
   void initState() {
     super.initState();
     final metroProvider = Provider.of<MetroProvider>(context,listen: false);
-    metroProvider.initializeAnimationController(this);
+     metroProvider.initializeAnimationController(this);
   }
 
   MetroProvider? metroProvider;
@@ -163,7 +160,7 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
 
                                     Positioned(
                                       top:  height *controller.bpm*0.00058,
-                                      left: width*0.008,
+                                      left: width*0.002,
                                       child: Image.asset(
                                         Images.slider,
                                         height: height * 0.045,
@@ -223,7 +220,7 @@ class _MetroViewState extends State<MetroView> with TickerProviderStateMixin {
                                 min: 1,
                                 max:300,
                                 onChanged: (value) {
-                                    controller.setPosition(value);
+                                    controller.setPosition(value,this);
                                 },
                               ),
                             ),

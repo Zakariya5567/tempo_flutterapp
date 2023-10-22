@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:reg_page/reg_page.dart';
-import 'package:tempo_bpm/providers/metro_provider.dart';
 import 'package:tempo_bpm/providers/tap_temp_provider.dart';
 import 'package:tempo_bpm/utils/images.dart';
 import '../utils/app_ colors.dart';
@@ -39,7 +36,7 @@ class BpmView extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  controller.audioName,
+                  controller.musicName,
                   style: TextStyle(
                     fontFamily: AppConstant.sansFont,
                     color: AppColors.whiteLight,
